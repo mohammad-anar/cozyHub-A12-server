@@ -27,17 +27,38 @@ async function run() {
 
     const apartmentCollection = client.db("prh-a12").collection("apartments");
     const agreementCollection = client.db("prh-a12").collection("agreements");
+    const userCollection = client.db("prh-a12").collection("users");
 
     app.get("/apartments", async (req, res) => {
         const result = await apartmentCollection.find().toArray();
-        console.log(result, "apartments");
       res.send(result);
     });
+
+    app.get("/agreements", async (req, res) => {
+      const query = {userEmail: req?.query?.email}
+      const result = await agreementCollection.find(query).toArray()
+      res.send(result)
+    })
 
     app.post("/agreements", async (req, res) => {
         const agreementData = req.body;
         const result = await agreementCollection.insertOne(agreementData)
         res.send(result)
+    })
+
+    // user related api 
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params?.email;
+      const query = {email}
+      const result = await userCollection.find(query).toArray();
+      res.send(result)
+    })
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result)
+
     })
 
     console.log(
