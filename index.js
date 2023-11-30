@@ -29,6 +29,7 @@ async function run() {
     const agreementCollection = client.db("prh-a12").collection("agreements");
     const userCollection = client.db("prh-a12").collection("users");
     const announcementCollection = client.db("prh-a12").collection("announcements");
+    const cuponCollection = client.db("prh-a12").collection("cupons");
 
     app.get("/apartments", async (req, res) => {
         const result = await apartmentCollection.find().toArray();
@@ -57,6 +58,25 @@ async function run() {
       const result = await announcementCollection.insertOne(announcement);
       res.send(result)
     })
+    app.put("/agreements/:id", async (req, res) => {
+      const id = req.params?.id;
+      const query = {_id : new ObjectId(id)}
+      const updatedDoc={
+        $set:{
+          status: "checked"
+        }
+      }
+      const result = await agreementCollection.updateOne(query, updatedDoc);
+      res.send(result)
+
+    })
+    app.delete("/agreements/:id", async (req, res) => {
+      const id = req.params?.id;
+      const query = {_id : new ObjectId(id)}
+      const result = await agreementCollection.deleteOne(query);
+      res.send(result)
+
+    })
 
     // user related api 
     app.get("/users", async (req, res) => {
@@ -75,6 +95,18 @@ async function run() {
       const user = req.body;
       const result = await userCollection.insertOne(user);
       res.send(result)
+    })
+    app.put("/users/:id", async (req, res) => {
+      const id = req.params?.id;
+      const query = {_id : new ObjectId(id)}
+      const updatedDoc={
+        $set:{
+          role: "member"
+        }
+      }
+      const result = await userCollection.updateOne(query, updatedDoc);
+      res.send(result)
+
     })
 
     app.patch("/users/:id", async (req, res) => {
