@@ -28,11 +28,17 @@ async function run() {
     const apartmentCollection = client.db("prh-a12").collection("apartments");
     const agreementCollection = client.db("prh-a12").collection("agreements");
     const userCollection = client.db("prh-a12").collection("users");
+    const announcementCollection = client.db("prh-a12").collection("announcements");
 
     app.get("/apartments", async (req, res) => {
         const result = await apartmentCollection.find().toArray();
       res.send(result);
     });
+    // agreements apis 
+    app.get("/agreements", async (req, res) => {
+      const result = await agreementCollection.find().toArray();
+      res.send(result)
+    })
 
     app.get("/agreements", async (req, res) => {
       const query = {userEmail: req?.query?.email}
@@ -44,6 +50,12 @@ async function run() {
         const agreementData = req.body;
         const result = await agreementCollection.insertOne(agreementData)
         res.send(result)
+    })
+    // announcement api 
+    app.post("/announcements", async (req, res) => {
+      const announcement = req.body;
+      const result = await announcementCollection.insertOne(announcement);
+      res.send(result)
     })
 
     // user related api 
