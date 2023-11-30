@@ -5,9 +5,8 @@ const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
 
-
-app.use(cors())
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.zav38m0.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -28,98 +27,108 @@ async function run() {
     const apartmentCollection = client.db("prh-a12").collection("apartments");
     const agreementCollection = client.db("prh-a12").collection("agreements");
     const userCollection = client.db("prh-a12").collection("users");
-    const announcementCollection = client.db("prh-a12").collection("announcements");
+    const announcementCollection = client
+      .db("prh-a12")
+      .collection("announcements");
     const cuponCollection = client.db("prh-a12").collection("cupons");
 
     app.get("/apartments", async (req, res) => {
-        const result = await apartmentCollection.find().toArray();
+      const result = await apartmentCollection.find().toArray();
       res.send(result);
     });
-    // agreements apis 
+    // agreements apis
     app.get("/agreements", async (req, res) => {
       const result = await agreementCollection.find().toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     app.get("/agreements", async (req, res) => {
-      const query = {userEmail: req?.query?.email}
-      const result = await agreementCollection.find(query).toArray()
-      res.send(result)
-    })
+      const query = { userEmail: req?.query?.email };
+      const result = await agreementCollection.find(query).toArray();
+      res.send(result);
+    });
 
     app.post("/agreements", async (req, res) => {
-        const agreementData = req.body;
-        const result = await agreementCollection.insertOne(agreementData)
-        res.send(result)
-    })
-    // announcement api 
+      const agreementData = req.body;
+      const result = await agreementCollection.insertOne(agreementData);
+      res.send(result);
+    });
+
+    app.put("/agreements/:id", async (req, res) => {
+      const id = req.params?.id;
+      const query = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: "checked",
+        },
+      };
+      const result = await agreementCollection.updateOne(query, updatedDoc);
+      res.send(result);
+    });
+    app.delete("/agreements/:id", async (req, res) => {
+      const id = req.params?.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await agreementCollection.deleteOne(query);
+      res.send(result);
+    });
+    // announcement api
     app.post("/announcements", async (req, res) => {
       const announcement = req.body;
       const result = await announcementCollection.insertOne(announcement);
+      res.send(result);
+    });
+    // cupons apis
+    app.get("/cupons", async (req, res) => {
+      const result = await cuponCollection.find().toArray();
       res.send(result)
     })
-    app.put("/agreements/:id", async (req, res) => {
-      const id = req.params?.id;
-      const query = {_id : new ObjectId(id)}
-      const updatedDoc={
-        $set:{
-          status: "checked"
-        }
-      }
-      const result = await agreementCollection.updateOne(query, updatedDoc);
+    app.post("/cupons", async(req, res) => {
+      const cupon = req.body;
+      const result = await cuponCollection.insertOne(cupon);
       res.send(result)
-
+      console.log(cupon);
     })
-    app.delete("/agreements/:id", async (req, res) => {
-      const id = req.params?.id;
-      const query = {_id : new ObjectId(id)}
-      const result = await agreementCollection.deleteOne(query);
-      res.send(result)
-
-    })
-
-    // user related api 
+    // user related api
     app.get("/users", async (req, res) => {
-      const query = {role: "member"}
+      const query = { role: "member" };
       const result = await userCollection.find(query).toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
     app.get("/users/:email", async (req, res) => {
       const email = req.params?.email;
-      const query = {email}
+      const query = { email };
       const result = await userCollection.find(query).toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await userCollection.insertOne(user);
-      res.send(result)
-    })
+      res.send(result);
+    });
     app.put("/users/:id", async (req, res) => {
       const id = req.params?.id;
-      const query = {_id : new ObjectId(id)}
-      const updatedDoc={
-        $set:{
-          role: "member"
-        }
-      }
+      const query = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: "member",
+        },
+      };
       const result = await userCollection.updateOne(query, updatedDoc);
-      res.send(result)
-
-    })
+      res.send(result);
+    });
 
     app.patch("/users/:id", async (req, res) => {
       const id = req.params?.id;
-      const query = {_id : new ObjectId(id)}
-      const updatedDoc={
-        $set:{
-          role: "user"
-        }
-      }
+      const query = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: "user",
+        },
+      };
       const result = await userCollection.updateOne(query, updatedDoc);
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
