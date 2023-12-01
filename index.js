@@ -2,10 +2,9 @@ const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 require("dotenv").config();
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const cors = require("cors");
 const port = process.env.PORT || 5000;
-
 
 app.use(cors());
 app.use(express.json());
@@ -33,6 +32,7 @@ async function run() {
       .db("prh-a12")
       .collection("announcements");
     const cuponCollection = client.db("prh-a12").collection("cupons");
+    const paymentCollection = client.db("prh-a12").collection("payments");
 
     app.get("/apartments", async (req, res) => {
       const result = await apartmentCollection.find().toArray();
@@ -76,8 +76,8 @@ async function run() {
     // announcement api
     app.get("/announcements", async (req, res) => {
       const result = await announcementCollection.find().toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
     app.post("/announcements", async (req, res) => {
       const announcement = req.body;
       const result = await announcementCollection.insertOne(announcement);
@@ -86,14 +86,14 @@ async function run() {
     // cupons apis
     app.get("/cupons", async (req, res) => {
       const result = await cuponCollection.find().toArray();
-      res.send(result)
-    })
-    app.post("/cupons", async(req, res) => {
+      res.send(result);
+    });
+    app.post("/cupons", async (req, res) => {
       const cupon = req.body;
       const result = await cuponCollection.insertOne(cupon);
-      res.send(result)
+      res.send(result);
       console.log(cupon);
-    })
+    });
     // user related api
     app.get("/users", async (req, res) => {
       const query = { role: "member" };
@@ -114,7 +114,7 @@ async function run() {
     });
     app.put("/users/:email", async (req, res) => {
       const email = req.params?.email;
-      const query = { email: email};
+      const query = { email: email };
       const updatedDoc = {
         $set: {
           role: "member",
@@ -135,25 +135,43 @@ async function run() {
       const result = await userCollection.updateOne(query, updatedDoc);
       res.send(result);
     });
-    // payment related api 
-    app.post("/create-payment-intent", async(req, res)=>{
-      const {price} = req.body;
-      const amount = parseFloat(price * 100)
-      // create payment intent 
-      const paymentIntent = stripe.paymentIntents.create({
-        amount:amount,
-        currency: "usd",
-        payment_method_types:["card"]
-      })
-      res.send({
-        clientSecret:paymentIntent.client_secret
-      })
-    })
+    // payment related api
+    app.get("/payments/:email", async (req, res) => {
+      const email = req?.params?.email;
+      const query = {
+        email: email,
+      };
+      const result = await paymentCollection.find(query).toArray();
+      res.send(result)
+    });
+
+    app.post("/create-payment-intent", async (req, res) => {
+      try {
+        const { price } = req.body;
+        const amount = parseFloat(price * 100);
+        // create payment intent
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          payment_method_types: ["card"],
+        });
+        res.send({
+          clientSecret: paymentIntent.client_secret,
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+      res.send(result);
+    });
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
-    
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
