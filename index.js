@@ -41,8 +41,8 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
-    await client.db("admin").command({ ping: 1 });
+    // await client.connect();
+    // await client.db("admin").command({ ping: 1 });
 
     const apartmentCollection = client.db("prh-a12").collection("apartments");
     const agreementCollection = client.db("prh-a12").collection("agreements");
@@ -125,9 +125,20 @@ async function run() {
       res.send(result);
       console.log(cupon);
     });
+    app.delete("/cupons/:id", async (req, res) => {
+      const id = req.params?.id;
+      const query = {_id : new ObjectId(id)}
+      const result = await cuponCollection.deleteOne(query);
+      res.send(result)
+    })
     // user related api
     app.get("/users",verifyToken, async (req, res) => {
       const query = { role: "member" };
+      const result = await userCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.get("/members",verifyToken, async (req, res) => {
+      const query = { role: "user" };
       const result = await userCollection.find(query).toArray();
       res.send(result);
     });
